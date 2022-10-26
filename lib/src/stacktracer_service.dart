@@ -4,7 +4,7 @@ import 'package:flutter/material.dart' show StringCharacters;
 import 'package:path_provider/path_provider.dart';
 import 'package:process_run/shell.dart';
 
-class DeobfuscatorService {
+class StacktracerService {
   Future<String> deobfuscate(
       String obfuscatedStacktraceInput, String selectedSymbolsPath) async {
     String? flutterExectutable = whichSync('flutter');
