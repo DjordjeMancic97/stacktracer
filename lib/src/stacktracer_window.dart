@@ -15,6 +15,17 @@ class StacktracerWindow extends StatefulWidget {
 class _StacktracerWindowState extends State<StacktracerWindow> {
   PlatformFile? _selectedSymbols;
   String _stacktraceShow = '';
+  String _flutterExecutable = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      String? flutterPath = await FilePicker.platform
+          .getDirectoryPath(dialogTitle: 'Select Flutter bin folder');
+      _flutterExecutable = flutterPath ?? '';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,19 +158,26 @@ class _StacktracerWindowState extends State<StacktracerWindow> {
                                   ? Colors.grey
                                   : const Color(0xff009688)),
                         ),
-                        onPressed:
-                            _stacktraceShow.isEmpty || _selectedSymbols == null
-                                ? null
-                                : () async {
-                                    String obfuscateResult =
-                                        await StacktracerService().deobfuscate(
-                                            _stacktraceShow,
-                                            _selectedSymbols!.path!);
+                        onPressed: _stacktraceShow.isEmpty ||
+                                _selectedSymbols == null
+                            ? null
+                            : () async {
+                                try {
+                                  String obfuscateResult =
+                                      await StacktracerService().deobfuscate(
+                                          _flutterExecutable,
+                                          _stacktraceShow,
+                                          _selectedSymbols!.path!);
 
-                                    setState(() {
-                                      _stacktraceShow = obfuscateResult;
-                                    });
-                                  },
+                                  setState(() {
+                                    _stacktraceShow = obfuscateResult;
+                                  });
+                                } catch (e) {
+                                  setState(() {
+                                    _stacktraceShow = e.toString();
+                                  });
+                                }
+                              },
                         child: const Text('Deobfusacate'),
                       ),
                     ],
