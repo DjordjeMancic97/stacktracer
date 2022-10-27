@@ -2,6 +2,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'stacktracer_service.dart';
 
@@ -21,9 +22,15 @@ class _StacktracerWindowState extends State<StacktracerWindow> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      String? flutterPath = await FilePicker.platform
-          .getDirectoryPath(dialogTitle: 'Select Flutter bin folder');
-      _flutterExecutable = flutterPath ?? '';
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (prefs.getString('flutterPath')?.isEmpty ?? true) {
+        String? flutterPath = await FilePicker.platform
+            .getDirectoryPath(dialogTitle: 'Select Flutter bin folder');
+        _flutterExecutable = flutterPath ?? '';
+        prefs.setString('flutterPath', flutterPath ?? '');
+      } else {
+        _flutterExecutable = prefs.getString('flutterPath')!;
+      }
     });
   }
 
@@ -76,10 +83,13 @@ class _StacktracerWindowState extends State<StacktracerWindow> {
                         ),
                         child: Stack(
                           children: [
-                            SelectableText(
-                              '$_stacktraceShow\n\n\n',
-                              style: const TextStyle(
-                                color: Colors.white,
+                            Container(
+                              width: double.infinity,
+                              child: SelectableText(
+                                '$_stacktraceShow\n\n\n',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                             Positioned(
